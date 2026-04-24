@@ -3,6 +3,8 @@ import { Advertiser } from "../../src/advertiser.js";
 import { decode } from "../../src/envelope.js";
 import { parseKeyPairFromPem } from "../../src/signing.js";
 
+// Throwaway ed25519 keypair generated specifically for these tests.
+// Never funded, never used outside this repo. Safe to expose publicly.
 const PEM = `-----BEGIN PRIVATE KEY-----
 MC4CAQAwBQYDK2VwBCIEIMpAWJ/6tD/Xu+KZO6+ouV+keSKlVxVljlMSUF+Wr2id
 -----END PRIVATE KEY-----
