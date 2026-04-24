@@ -1,0 +1,50 @@
+services:
+  alice:
+    build:
+      context: ../axl
+      dockerfile: containerfiles/Dockerfile
+    image: axl-pubsub-axl:local
+    container_name: axl-pubsub-alice
+    hostname: alice
+    command: ["-config", "/configs/alice.json"]
+    volumes:
+      - ./configs:/configs:ro
+      - ./keys:/keys:ro
+    ports:
+      - "9002:9002"
+    networks:
+      - axlnet
+
+  bob:
+    image: axl-pubsub-axl:local
+    depends_on:
+      - alice
+    container_name: axl-pubsub-bob
+    hostname: bob
+    command: ["-config", "/configs/bob.json"]
+    volumes:
+      - ./configs:/configs:ro
+      - ./keys:/keys:ro
+    ports:
+      - "9012:9002"
+    networks:
+      - axlnet
+
+  charlie:
+    image: axl-pubsub-axl:local
+    depends_on:
+      - alice
+    container_name: axl-pubsub-charlie
+    hostname: charlie
+    command: ["-config", "/configs/charlie.json"]
+    volumes:
+      - ./configs:/configs:ro
+      - ./keys:/keys:ro
+    ports:
+      - "9022:9002"
+    networks:
+      - axlnet
+
+networks:
+  axlnet:
+    driver: bridge
