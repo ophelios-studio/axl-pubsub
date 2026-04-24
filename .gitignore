@@ -8,9 +8,5 @@ coverage/
 .env
 .env.*
 
-# local-only operational notes (user handles GitHub-side later)
-CHALLENGES.md
-FEEDBACK.md
-
 # integration test ephemera
 test/integration/compose/keys/*.pem
