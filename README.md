@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/ophelios-studio/axl-pubsub/actions/workflows/ci.yml/badge.svg)](https://github.com/ophelios-studio/axl-pubsub/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/ophelios-studio/axl-pubsub/branch/main/graph/badge.svg)](https://codecov.io/gh/ophelios-studio/axl-pubsub)
-[![Latest release](https://img.shields.io/github/v/release/ophelios-studio/axl-pubsub)](https://github.com/ophelios-studio/axl-pubsub/releases)
+[![npm version](https://img.shields.io/npm/v/axl-pubsub.svg)](https://www.npmjs.com/package/axl-pubsub)
 
 Topic-based pub/sub gossip on top of [Gensyn AXL](https://github.com/gensyn-ai/axl).
 
