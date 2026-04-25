@@ -1,5 +1,9 @@
 # axl-pubsub
 
+[![CI](https://github.com/ophelios-studio/axl-pubsub/actions/workflows/ci.yml/badge.svg)](https://github.com/ophelios-studio/axl-pubsub/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/ophelios-studio/axl-pubsub/branch/main/graph/badge.svg)](https://codecov.io/gh/ophelios-studio/axl-pubsub)
+[![Latest release](https://img.shields.io/github/v/release/ophelios-studio/axl-pubsub)](https://github.com/ophelios-studio/axl-pubsub/releases)
+
 Topic-based pub/sub gossip on top of [Gensyn AXL](https://github.com/gensyn-ai/axl).
 
 AXL ships with `POST /send` (unicast) and `GET /recv` (polled FIFO queue). It does not natively support topics, subscription registries, or broadcast. `axl-pubsub` is a TypeScript library that runs in-process alongside an AXL node and adds:
