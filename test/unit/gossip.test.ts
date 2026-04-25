@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PubSub } from "../../src/pubsub.js";
+import { Gossip } from "../../src/gossip.js";
 import { parseKeyPairFromPem } from "../../src/signing.js";
 
 // Throwaway ed25519 keypair generated specifically for these tests.
@@ -60,24 +60,24 @@ async function settle(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-describe("PubSub validation", () => {
+describe("Gossip validation", () => {
   it("rejects start() without keyPair or privateKeyPath", async () => {
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({ axlUrl: "http://x", fetchImpl: node.fetchImpl });
+    const ps = new Gossip({ axlUrl: "http://x", fetchImpl: node.fetchImpl });
     await expect(ps.start()).rejects.toThrow(/keyPair or privateKeyPath/);
   });
 
   it("publish() before start() throws", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
+    const ps = new Gossip({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
     await expect(ps.publish("a.b", new Uint8Array())).rejects.toThrow(/start/);
   });
 
   it("publish() with invalid concrete topic throws", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
+    const ps = new Gossip({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
     await ps.start();
     await expect(ps.publish("a.*", new Uint8Array())).rejects.toThrow(/concrete topic/);
     await ps.stop();
@@ -86,7 +86,7 @@ describe("PubSub validation", () => {
   it("publish() rejects oversized payload", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({
+    const ps = new Gossip({
       axlUrl: "http://x",
       keyPair: kp,
       fetchImpl: node.fetchImpl,
@@ -100,16 +100,16 @@ describe("PubSub validation", () => {
   it("subscribe() with invalid pattern throws", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
+    const ps = new Gossip({ axlUrl: "http://x", keyPair: kp, fetchImpl: node.fetchImpl });
     await expect(ps.subscribe("a.#", () => {})).rejects.toThrow(/invalid topic pattern/);
   });
 });
 
-describe("PubSub flow", () => {
+describe("Gossip flow", () => {
   it("publish with no known subscribers returns empty sentTo", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({
+    const ps = new Gossip({
       axlUrl: "http://x",
       keyPair: kp,
       fetchImpl: node.fetchImpl,
@@ -128,7 +128,7 @@ describe("PubSub flow", () => {
   it("delivers a matching pub to a subscribed handler (self-loopback via inject)", async () => {
     const kp = await parseKeyPairFromPem(PEM);
     const node = new MockAxlNode(SELF);
-    const ps = new PubSub({
+    const ps = new Gossip({
       axlUrl: "http://x",
       keyPair: kp,
       fetchImpl: node.fetchImpl,

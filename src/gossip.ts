@@ -9,7 +9,7 @@ import { type KeyPair, loadKeyPairFromPem } from "./signing.js";
 import { SubscriptionTable } from "./subscription-table.js";
 import { isValidConcreteTopic, isValidPattern, matches } from "./topic-matcher.js";
 
-export interface PubSubOptions {
+export interface GossipOptions {
   axlUrl: string;
   privateKeyPath?: string;
   keyPair?: KeyPair;
@@ -30,7 +30,7 @@ export interface ReceivedPub {
   payload: Uint8Array;
 }
 
-export type PubSubHandler = (msg: ReceivedPub) => void | Promise<void>;
+export type GossipHandler = (msg: ReceivedPub) => void | Promise<void>;
 
 export interface Subscription {
   pattern: string;
@@ -52,19 +52,19 @@ const DEFAULTS = {
   maxPayloadBytes: 16 * 1024 * 1024 - 1024,
 };
 
-export class PubSub extends EventEmitter {
-  private readonly opts: PubSubOptions & typeof DEFAULTS;
+export class Gossip extends EventEmitter {
+  private readonly opts: GossipOptions & typeof DEFAULTS;
   private readonly client: AxlClient;
   private readonly table = new SubscriptionTable();
   private readonly dedup: Dedup;
-  private readonly handlers = new Map<string, Set<PubSubHandler>>();
+  private readonly handlers = new Map<string, Set<GossipHandler>>();
   private keyPair: KeyPair | null = null;
   private poller: Poller | null = null;
   private advertiser: Advertiser | null = null;
   private sweepTimer: ReturnType<typeof setInterval> | null = null;
   private started = false;
 
-  constructor(opts: PubSubOptions) {
+  constructor(opts: GossipOptions) {
     super();
     this.opts = { ...DEFAULTS, ...opts };
     this.client = new AxlClient(
@@ -111,7 +111,7 @@ export class PubSub extends EventEmitter {
     this.advertiser = null;
   }
 
-  async subscribe(pattern: string, handler: PubSubHandler): Promise<Subscription> {
+  async subscribe(pattern: string, handler: GossipHandler): Promise<Subscription> {
     if (!isValidPattern(pattern)) throw new Error(`invalid topic pattern: ${pattern}`);
     let set = this.handlers.get(pattern);
     if (!set) {
@@ -133,7 +133,7 @@ export class PubSub extends EventEmitter {
   }
 
   async publish(topic: string, payload: Uint8Array): Promise<PublishResult> {
-    if (!this.keyPair) throw new Error("PubSub.start() must be called before publish()");
+    if (!this.keyPair) throw new Error("Gossip.start() must be called before publish()");
     if (!isValidConcreteTopic(topic)) throw new Error(`invalid concrete topic: ${topic}`);
     if (payload.length > this.opts.maxPayloadBytes) {
       throw new Error(`payload too large: ${payload.length} > ${this.opts.maxPayloadBytes}`);
@@ -170,7 +170,7 @@ export class PubSub extends EventEmitter {
   private async resolveKeyPair(): Promise<KeyPair> {
     if (this.opts.keyPair) return this.opts.keyPair;
     if (this.opts.privateKeyPath) return loadKeyPairFromPem(this.opts.privateKeyPath);
-    throw new Error("PubSub requires either keyPair or privateKeyPath");
+    throw new Error("Gossip requires either keyPair or privateKeyPath");
   }
 
   private async dispatch(

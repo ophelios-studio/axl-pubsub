@@ -1,11 +1,11 @@
-export { PubSub } from "./pubsub.js";
+export { Gossip } from "./gossip.js";
 export type {
-  PubSubOptions,
-  PubSubHandler,
+  GossipOptions,
+  GossipHandler,
   ReceivedPub,
   Subscription,
   PublishResult,
-} from "./pubsub.js";
+} from "./gossip.js";
 
 export { loadKeyPairFromPem, parseKeyPairFromPem, SigningError } from "./signing.js";
 export type { KeyPair } from "./signing.js";

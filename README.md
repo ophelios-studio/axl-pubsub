@@ -25,9 +25,9 @@ Requires Node 18+.
 You need an AXL node running locally with its HTTP API exposed (default `:9002`) and an ed25519 PEM key (`openssl genpkey -algorithm ed25519`).
 
 ```ts
-import { PubSub } from "axl-pubsub";
+import { Gossip } from "axl-pubsub";
 
-const ps = new PubSub({
+const ps = new Gossip({
   axlUrl: "http://localhost:9002",
   privateKeyPath: "/keys/me.pem",
 });
@@ -48,7 +48,7 @@ await ps.stop();
 ## Public API
 
 ```ts
-const ps = new PubSub({
+const ps = new Gossip({
   axlUrl,                          // required: AXL node base URL
   privateKeyPath,                  // OR keyPair: KeyPair
   pollIntervalMs: 25,              // /recv poll cadence

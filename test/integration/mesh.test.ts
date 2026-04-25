@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { AxlClient } from "../../src/axl-client.js";
 import { encodePub } from "../../src/envelope.js";
-import { PubSub } from "../../src/pubsub.js";
+import { Gossip } from "../../src/gossip.js";
 import { type KeyPair, parseKeyPairFromPem } from "../../src/signing.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -56,9 +56,9 @@ describe("integration mesh", () => {
   let aliceKp: KeyPair;
   let bobKp: KeyPair;
   let charlieKp: KeyPair;
-  let alice: PubSub;
-  let bob: PubSub;
-  let charlie: PubSub;
+  let alice: Gossip;
+  let bob: Gossip;
+  let charlie: Gossip;
 
   beforeAll(async () => {
     if (!(await meshReachable())) {
@@ -72,9 +72,9 @@ describe("integration mesh", () => {
   });
 
   beforeEach(async () => {
-    alice = new PubSub({ axlUrl: NODES.alice, keyPair: aliceKp, ...FAST });
-    bob = new PubSub({ axlUrl: NODES.bob, keyPair: bobKp, ...FAST });
-    charlie = new PubSub({ axlUrl: NODES.charlie, keyPair: charlieKp, ...FAST });
+    alice = new Gossip({ axlUrl: NODES.alice, keyPair: aliceKp, ...FAST });
+    bob = new Gossip({ axlUrl: NODES.bob, keyPair: bobKp, ...FAST });
+    charlie = new Gossip({ axlUrl: NODES.charlie, keyPair: charlieKp, ...FAST });
     await Promise.all([alice.start(), bob.start(), charlie.start()]);
   });
 
