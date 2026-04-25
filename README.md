@@ -72,9 +72,40 @@ await ps.stop();
 
 ## How discovery works
 
-Each node periodically signs and broadcasts a `sub_ad` envelope listing its current subscription patterns. Every receiving node verifies the signature, validates monotonic `seq`, and updates its local peer-to-topics table with the supplied `ttl_ms`. When the publisher emits, it consults that local table and fan-outs only to matching peers.
+Every Gossip instance keeps its own **local subscription table**: a map of `peer_pubkey -> patterns_they_subscribe_to`. There is no central registry. The table is built by listening to signed `sub_ad` envelopes that other nodes broadcast periodically.
 
-This is a one-hop announcement model in v0.1. Scaling considerations: O(N²) announcements per cycle. Fine to ~100 nodes at a 30s cycle. Beyond that, see *Known limitations*.
+When you call `await ps.subscribe(pattern, handler)`, your node's advertiser signs a `sub_ad` listing your current patterns and fan-outs it to every peer reachable via AXL's `/topology`. Each receiving node's poller pulls it off `/recv`, verifies the signature, and updates its own table.
+
+Concrete three-node walk-through:
+
+```
+1. bob calls    ps.subscribe("news.*", handler)
+                  |
+                  +-- bob's advertiser fan-outs a signed sub_ad to alice + charlie
+
+2. alice's poller receives bob's sub_ad
+                  +-- alice's table:   bob -> ["news.*"]
+3. charlie's poller receives bob's sub_ad
+                  +-- charlie's table: bob -> ["news.*"]
+
+4. alice calls  ps.publish("news.test", payload)
+                  |
+                  +-- consults HER OWN table
+                  +-- matches: bob subscribes to "news.*"
+                  +-- sends pub envelope to bob only (charlie not matched)
+
+5. bob's poller receives the pub envelope
+                  +-- verifies signature, dedups by (from, id)
+                  +-- invokes bob's handler
+```
+
+Alice does not ask anyone "who subscribes to news.\*?". She consults her own copy of the table, which she built up independently from `sub_ad`s she has received. Same for every other node. No central coordinator, no single point of failure.
+
+**TTL keeps the table self-cleaning.** Every `sub_ad` carries a `ttl_ms` (default 90s). If a node does not refresh its announcement within that window, peers evict it and emit `peer-left`. If the node is still alive, its next periodic announcement re-enters it.
+
+**Eventual consistency.** Between calling `subscribe()` and the announcement reaching every publisher, there is a small window during which `publish()` will not reach you. Worst case is `advertiseIntervalMs` (default 30s); in practice it is well under one second, because each `subscribe()` call triggers an immediate out-of-band refresh in addition to the periodic cycle.
+
+This is the classic gossip-protocol shape: small per-node state, no central coordinator, eventual consistency, fault-tolerant by design. Cost is O(N²) announcement traffic per cycle. At 60 nodes with a 30s cycle that's ~120 messages/sec network-wide, comfortable. Beyond ~100 nodes, see [`docs/known-limitations.md`](docs/known-limitations.md).
 
 ## Wire format
 
