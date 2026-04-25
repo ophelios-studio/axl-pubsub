@@ -107,6 +107,19 @@ Alice does not ask anyone "who subscribes to news.\*?". She consults her own cop
 
 This is the classic gossip-protocol shape: small per-node state, no central coordinator, eventual consistency, fault-tolerant by design. Cost is O(N²) announcement traffic per cycle. At 60 nodes with a 30s cycle that's ~120 messages/sec network-wide, comfortable. Beyond ~100 nodes, see [`docs/known-limitations.md`](docs/known-limitations.md).
 
+## Examples
+
+Runnable end-to-end:
+
+- [`examples/simple-pub.ts`](examples/simple-pub.ts) - publishes a JSON message to `news.test` every 2 seconds.
+- [`examples/simple-sub.ts`](examples/simple-sub.ts) - subscribes to `news.*` and logs each verified message.
+
+Run with `AXL_URL` and `PRIVATE_KEY_PATH` env vars pointing at a node and an ed25519 PEM:
+
+```bash
+AXL_URL=http://localhost:9012 PRIVATE_KEY_PATH=./bob.pem npx tsx examples/simple-sub.ts
+```
+
 ## Wire format
 
 Detailed envelope spec, canonical signing layout, and validation rules: [`docs/wire-format.md`](docs/wire-format.md).
