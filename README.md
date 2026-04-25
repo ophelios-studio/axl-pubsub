@@ -92,22 +92,23 @@ Unit tests run without any infrastructure:
 npm test
 ```
 
-Integration tests require Docker. Spin up a 3-node AXL mesh and run the full suite:
+Integration tests require Docker. The 3-node AXL mesh and lifecycle are wrapped in npm scripts:
 
 ```bash
-cd test/integration/compose
-make keys           # generate ed25519 keys for alice, bob, charlie
-make up             # build AXL image and start the mesh
-cd ../../..
-npm run test:integration
-make down           # tear down when done
+npm run integration:up        # generate keys, build AXL image, start the mesh
+npm run test:integration      # run the suite against the running mesh
+npm run integration:down      # tear down when done
 ```
 
-On macOS, default `openssl` is LibreSSL and rejects ed25519. Use Homebrew's:
+`integration:up` is idempotent: keys persist between runs (gitignored), and the AXL image only rebuilds when its source changes. `npm run integration:logs` tails container logs.
+
+On macOS, default `openssl` is LibreSSL and rejects ed25519. Override the binary used for key generation:
 
 ```bash
-make OPENSSL=/opt/homebrew/opt/openssl@3/bin/openssl keys
+make -C test/integration/compose keys OPENSSL=/opt/homebrew/opt/openssl@3/bin/openssl
 ```
+
+Run that once, then the regular npm scripts work.
 
 ## License
 
