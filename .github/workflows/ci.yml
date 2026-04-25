@@ -35,3 +35,49 @@ jobs:
           name: coverage-report
           path: coverage/
           retention-days: 14
+
+  integration:
+    name: integration mesh tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Bring up the AXL mesh
+        run: npm run integration:up
+
+      - name: Wait for mesh readiness
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:9002/topology > /dev/null && \
+               curl -sf http://localhost:9012/topology > /dev/null && \
+               curl -sf http://localhost:9022/topology > /dev/null; then
+              echo "mesh ready"
+              exit 0
+            fi
+            echo "waiting for mesh ($i/30)..."
+            sleep 2
+          done
+          echo "mesh did not become ready"
+          exit 1
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Capture container logs on failure
+        if: failure()
+        run: docker compose -f test/integration/compose/docker-compose.yml logs
+
+      - name: Tear down mesh
+        if: always()
+        run: npm run integration:down
