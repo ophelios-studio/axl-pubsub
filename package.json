@@ -14,13 +14,19 @@
       "require": "./dist/index.cjs"
     }
   },
-  "files": ["dist", "LICENSE"],
-  "engines": { "node": ">=18" },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:coverage": "vitest run --coverage",
     "integration:up": "make -C test/integration/compose up",
     "integration:down": "make -C test/integration/compose down",
     "integration:logs": "make -C test/integration/compose logs",
@@ -29,8 +35,13 @@
     "format": "biome format --write ."
   },
   "tsup": {
-    "entry": ["src/index.ts"],
-    "format": ["esm", "cjs"],
+    "entry": [
+      "src/index.ts"
+    ],
+    "format": [
+      "esm",
+      "cjs"
+    ],
     "dts": true,
     "clean": true,
     "sourcemap": true
@@ -42,6 +53,7 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "@types/node": "^20.14.0",
+    "@vitest/coverage-v8": "^2.1.9",
     "tsup": "^8.3.0",
     "typescript": "^5.5.0",
     "vitest": "^2.1.0"
