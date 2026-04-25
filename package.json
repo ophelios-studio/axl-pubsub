@@ -21,6 +21,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "integration:up": "make -C test/integration/compose up",
+    "integration:down": "make -C test/integration/compose down",
+    "integration:logs": "make -C test/integration/compose logs",
     "typecheck": "tsc --noEmit",
     "lint": "biome check .",
     "format": "biome format --write ."
