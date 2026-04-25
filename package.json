@@ -1,6 +1,6 @@
 {
   "name": "axl-pubsub",
-  "version": "0.1.0-dev.0",
+  "version": "0.1.0",
   "description": "Topic-based pub/sub gossip on top of Gensyn AXL.",
   "license": "Apache-2.0",
   "type": "module",
