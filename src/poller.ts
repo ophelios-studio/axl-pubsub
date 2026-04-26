@@ -4,7 +4,7 @@ import { type Decoded, EnvelopeError, decode } from "./envelope.js";
 export interface PollerOptions {
   client: Pick<AxlClient, "recv">;
   intervalMs: number;
-  onMessage: (decoded: Decoded, fromHeader: string) => void | Promise<void>;
+  onMessage: (decoded: Decoded) => void | Promise<void>;
   onError: (err: Error) => void;
 }
 
@@ -38,7 +38,7 @@ export class Poller {
           await sleep(this.opts.intervalMs);
           continue;
         }
-        await this.handle(msg.body, msg.fromHeader);
+        await this.handle(msg.body);
       } catch (err) {
         this.reportError(err);
         await sleep(this.opts.intervalMs);
@@ -46,7 +46,7 @@ export class Poller {
     }
   }
 
-  private async handle(body: Uint8Array, fromHeader: string): Promise<void> {
+  private async handle(body: Uint8Array): Promise<void> {
     let decoded: Decoded;
     try {
       decoded = await decode(body);
@@ -55,7 +55,7 @@ export class Poller {
       throw err;
     }
     try {
-      await this.opts.onMessage(decoded, fromHeader);
+      await this.opts.onMessage(decoded);
     } catch (err) {
       this.reportError(err);
     }
