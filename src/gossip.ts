@@ -81,7 +81,7 @@ export class Gossip extends EventEmitter {
     this.poller = new Poller({
       client: this.client,
       intervalMs: this.opts.pollIntervalMs,
-      onMessage: (d, fh) => this.dispatch(d, fh),
+      onMessage: (d) => this.dispatch(d),
       onError: (err) => this.emit("error", err),
     });
     this.advertiser = new Advertiser({
@@ -173,17 +173,18 @@ export class Gossip extends EventEmitter {
     throw new Error("Gossip requires either keyPair or privateKeyPath");
   }
 
-  private async dispatch(
-    decoded: DecodedPub | DecodedSubAd,
-    fromHeader: string,
-  ): Promise<void> {
-    if (!fromHeaderMatchesPubkey(fromHeader, decoded.from)) {
-      this.emit(
-        "error",
-        new Error(`X-From-Peer-Id ${fromHeader} does not match envelope.from ${decoded.from}`),
-      );
-      return;
-    }
+  private async dispatch(decoded: DecodedPub | DecodedSubAd): Promise<void> {
+    // Authenticity rests on the ed25519 signature over the envelope, which
+    // `decodePub` / `decodeSubAd` have already verified against `decoded.from`.
+    //
+    // We intentionally do NOT cross-check `X-From-Peer-Id` against
+    // `decoded.from`: those are two different identity layers. The header is
+    // a Yggdrasil-derived prefix of the AXL DAEMON that handed us the
+    // message; `decoded.from` is the GOSSIP CLIENT's ed25519 pubkey used to
+    // sign. A consumer that runs the gossip client out-of-process from the
+    // daemon (e.g. SDK + sidecar AXL container) will always have these two
+    // differ, and forcing equality breaks that valid topology. Forgery of
+    // either field gains nothing without the matching ed25519 private key.
     if (decoded.kind === "pub") return this.dispatchPub(decoded);
     return this.dispatchSubAd(decoded);
   }
@@ -226,16 +227,3 @@ export class Gossip extends EventEmitter {
   }
 }
 
-// X-From-Peer-Id is a Yggdrasil-IPv6-derived prefix of the sender's pubkey:
-// trailing 0xff padding plus one mixed-bit byte at the boundary. Strip the
-// trailing ff bytes, drop the last byte, prefix-compare the rest.
-function fromHeaderMatchesPubkey(fromHeader: string, pubkeyHex: string): boolean {
-  if (!fromHeader || !pubkeyHex) return false;
-  let trimmed = fromHeader.toLowerCase();
-  while (trimmed.length >= 2 && trimmed.slice(-2) === "ff") {
-    trimmed = trimmed.slice(0, -2);
-  }
-  if (trimmed.length < 4) return false;
-  const prefix = trimmed.slice(0, -2);
-  return pubkeyHex.toLowerCase().startsWith(prefix);
-}
